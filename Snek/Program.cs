@@ -41,16 +41,12 @@ namespace Snek
         static List<Position> allPos;
         static ConsoleKey currentKey = ConsoleKey.W;
         static void Main(string[] args)
-        {   
-            //120 || 30
+        {
             Snake = new Queue<Position>();
             Snake.Enqueue(new Position(18, 25));
             Snake.Enqueue(new Position(17, 25));
             Snake.Enqueue(new Position(16, 25));
             Snake.Enqueue(new Position(15, 25));
-            //Timer t = new Timer(new TimerCallback(Update));
-            //t.Change(500, 500);
-            //while (true) { }
             Thread keyCheck = new Thread(new ThreadStart(getCurrentKey));
             keyCheck.Start();
             Map = new char[50, 50];
