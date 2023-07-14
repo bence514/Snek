@@ -39,7 +39,9 @@ namespace Snek
         static bool skip = false;
         static Position Apple;
         static List<Position> allPos;
+        static bool stopKeyCheck = false;
         static ConsoleKey currentKey = ConsoleKey.W;
+        static Thread keyCheck;
         static void Main(string[] args)
         {
             Snake = new Queue<Position>();
@@ -47,7 +49,7 @@ namespace Snek
             Snake.Enqueue(new Position(17, 25));
             Snake.Enqueue(new Position(16, 25));
             Snake.Enqueue(new Position(15, 25));
-            Thread keyCheck = new Thread(new ThreadStart(getCurrentKey));
+            keyCheck = new Thread(new ThreadStart(getCurrentKey));
             keyCheck.Start();
             Map = new char[50, 50];
             generateAllPos();
@@ -57,7 +59,12 @@ namespace Snek
                 Map = new char[50, 50];
                 move();
                 placeObjects();
-                isDead(ref keyCheck);
+                isDead();
+                if (keyCheck.ThreadState == ThreadState.Stopped || keyCheck.ThreadState == ThreadState.Unstarted)
+                {
+                    keyCheck = new Thread(new ThreadStart(getCurrentKey));
+                    keyCheck.Start();
+                }
                 applePickedUp();
                 Draw();
                 Thread.Sleep(100);
@@ -157,7 +164,8 @@ namespace Snek
 
         static void getCurrentKey()
         {
-            while (true)
+            Console.Beep();
+            while (!stopKeyCheck)
             {
                 switch (Console.ReadKey(true).Key)
                 {
@@ -180,14 +188,31 @@ namespace Snek
                 }
                 Thread.Sleep(1);
             }
+            return;
         }
 
-        static void gameOver(ref Thread keycheck)
+        static void gameOver()
         {
-            Environment.Exit(0);
+            Console.ForegroundColor = ConsoleColor.Red;
+            Draw();
+            stopKeyCheck = true;
+            if (!(Console.ReadKey(true).Key == ConsoleKey.R))
+            {
+                Environment.Exit(0);
+            }
+            Console.ForegroundColor= ConsoleColor.Green;
+            Snake = new Queue<Position>();
+            Snake.Enqueue(new Position(18, 25));
+            Snake.Enqueue(new Position(17, 25));
+            Snake.Enqueue(new Position(16, 25));
+            Snake.Enqueue(new Position(15, 25));
+            currentKey = ConsoleKey.W;
+            placeApple();
+            framecount = 0;
+            stopKeyCheck = false;
         }
 
-        static void isDead(ref Thread keycheck)
+        static void isDead()
         {
             for (int i = 0; i < Snake.Count; i++)
             {
@@ -195,7 +220,7 @@ namespace Snek
                 {
                     if (i != j && Snake.ToArray()[i] == Snake.ToArray()[j])
                     {
-                        gameOver(ref keycheck);
+                        gameOver();
                     }
                 }
             }
@@ -204,7 +229,7 @@ namespace Snek
         static void Draw()
         {
             string frame = "";
-            frame += $"Current Length: {Snake.Count} - Frame: {framecount++}\n";
+            frame += $"Current Length: {Snake.Count} - Frame: {framecount++} - {keyCheck.ThreadState}\n";
             frame += "╔";
             for (int i = 0; i < 50; i++)
             {
