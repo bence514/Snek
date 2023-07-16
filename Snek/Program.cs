@@ -1,4 +1,5 @@
-﻿using System.Runtime.Intrinsics.X86;
+﻿using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.X86;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Windows.Input;
@@ -7,7 +8,7 @@ namespace Snek
 {
     internal class Program
     {
-        struct Position
+        public struct Position
         {
             public Position(int x, int y)
             { 
@@ -39,9 +40,7 @@ namespace Snek
         static bool skip = false;
         static Position Apple;
         static List<Position> allPos;
-        static bool stopKeyCheck = false;
-        static ConsoleKey currentKey = ConsoleKey.W;
-        static Thread keyCheck;
+        static Queue<Position> moves;
         static void Main(string[] args)
         {
             Snake = new Queue<Position>();
@@ -49,26 +48,32 @@ namespace Snek
             Snake.Enqueue(new Position(17, 25));
             Snake.Enqueue(new Position(16, 25));
             Snake.Enqueue(new Position(15, 25));
-            keyCheck = new Thread(new ThreadStart(getCurrentKey));
-            keyCheck.Start();
             Map = new char[50, 50];
             generateAllPos();
             placeApple();
+            moves = requestMove();
             while (true)
             {
                 Map = new char[50, 50];
                 move();
                 placeObjects();
                 isDead();
-                if (keyCheck.ThreadState == ThreadState.Stopped || keyCheck.ThreadState == ThreadState.Unstarted)
-                {
-                    keyCheck = new Thread(new ThreadStart(getCurrentKey));
-                    keyCheck.Start();
-                }
                 applePickedUp();
                 Draw();
                 Thread.Sleep(100);
             }
+        }
+
+        static Queue<Position> requestMove()
+        {
+            var moveset = new Queue<Position>();
+
+            if (!PathFinding.aStar(Snake, Apple, out moveset))
+            {
+                //moveset = hamiltonian();
+                moveset.Enqueue(new Position((Snake.Last().x + 1) % 50, Snake.Last().y));
+            }
+            return moveset;
         }
 
         static void generateAllPos()
@@ -85,21 +90,9 @@ namespace Snek
 
         static void placeApple()
         {
-
-
             Random r = new Random();
             var tmp = allPos.Except(Snake).ToArray();
             Apple = tmp[r.Next(0, tmp.Length)];
-
-            /*while (true) 
-            {   
-                Position aPos = new Position(r.Next(0, Map.GetLength(0)), r.Next(0, Map.GetLength(1)));
-                if (!Snake.Contains(aPos))
-                {
-                    Apple = aPos;
-                    break;
-                }
-            }*/
         }
 
         static void applePickedUp()
@@ -122,94 +115,18 @@ namespace Snek
 
         static void move()
         {
-            switch (currentKey)
-            {
-                //felfele
-                case ConsoleKey.W:
-                    Position head = Snake.ToArray()[Snake.Count - 1];
-                    if (head.x - 1 < 0)
-                        Snake.Enqueue(new Position(49, head.y));
-                    else
-                        Snake.Enqueue(new Position(head.x - 1, head.y));
-                    break;
-                //bal
-                case ConsoleKey.A:
-                    head = Snake.ToArray()[Snake.Count - 1];
-                    if (head.y - 1 < 0)
-                        Snake.Enqueue(new Position(head.x, 49));
-                    else
-                        Snake.Enqueue(new Position(head.x, head.y - 1));
-                    break;
-                //lefele
-                case ConsoleKey.S:
-                    head = Snake.ToArray()[Snake.Count - 1];
-                    if (head.x + 1 > 49)
-                        Snake.Enqueue(new Position(0, head.y));
-                    else
-                        Snake.Enqueue(new Position(head.x + 1, head.y));
-                    break;
-                //jobb
-                case ConsoleKey.D:
-                    head = Snake.ToArray()[Snake.Count - 1];
-                    if (head.y + 1 > 49)
-                        Snake.Enqueue(new Position(head.x, 0));
-                    else
-                        Snake.Enqueue(new Position(head.x, head.y + 1));
-                    break;
-            }
+            if (moves.Count == 0)
+                moves = requestMove();
+            Snake.Enqueue(moves.Dequeue());
             if (!skip)
                 Snake.Dequeue();
             skip = false;
         }
 
-        static void getCurrentKey()
-        {
-            Console.Beep();
-            while (!stopKeyCheck)
-            {
-                switch (Console.ReadKey(true).Key)
-                {
-                    //felfele
-                    case ConsoleKey.W:
-                        currentKey = ConsoleKey.W;
-                        break;
-                    //bal
-                    case ConsoleKey.A:
-                        currentKey = ConsoleKey.A;
-                        break;
-                    //lefele
-                    case ConsoleKey.S:
-                        currentKey = ConsoleKey.S;
-                        break;
-                    //jobb
-                    case ConsoleKey.D:
-                        currentKey = ConsoleKey.D;
-                        break;
-                }
-                Thread.Sleep(1);
-            }
-            return;
-        }
-
         static void gameOver()
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Draw();
-            stopKeyCheck = true;
-            if (!(Console.ReadKey(true).Key == ConsoleKey.R))
-            {
-                Environment.Exit(0);
-            }
-            Console.ForegroundColor= ConsoleColor.Green;
-            Snake = new Queue<Position>();
-            Snake.Enqueue(new Position(18, 25));
-            Snake.Enqueue(new Position(17, 25));
-            Snake.Enqueue(new Position(16, 25));
-            Snake.Enqueue(new Position(15, 25));
-            currentKey = ConsoleKey.W;
-            placeApple();
-            framecount = 0;
-            stopKeyCheck = false;
+            Console.ReadKey();
         }
 
         static void isDead()
@@ -229,7 +146,7 @@ namespace Snek
         static void Draw()
         {
             string frame = "";
-            frame += $"Current Length: {Snake.Count} - Frame: {framecount++} - {keyCheck.ThreadState}\n";
+            frame += $"Current Length: {Snake.Count} - Frame: {framecount++}\n";
             frame += "╔";
             for (int i = 0; i < 50; i++)
             {
