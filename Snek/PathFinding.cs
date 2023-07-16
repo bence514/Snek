@@ -37,7 +37,7 @@ namespace Snek
                 this.distance = Math.Abs(this.x - targetX) + Math.Abs(this.y - targetY);
             }
         }
-        public static bool aStar(Queue<Program.Position> walls, Program.Position target, out Queue<Program.Position> moveset)
+        public static bool aStar(Queue<Program.Position> walls, Program.Position target, out Queue<Program.Position> moveset, bool loose)
         {
             //snake specific
             Tile start = new Tile(walls.Last().x, walls.Last().y, 100);
@@ -67,12 +67,15 @@ namespace Snek
                         currentTile = currentTile.parent;
                     }
                     tmp.Reverse();
-                    foreach (var tile in tmp)
-                    { 
-                        moveset.Enqueue(tile);
-                    }
+                    if (allReachable(walls, tmp, borders) || loose)
+                    {
+                        foreach (var tile in tmp)
+                        {
+                            moveset.Enqueue(tile);
+                        }
 
-                    return true;
+                        return true;
+                    }
                 }
 
                 visitedTiles.Add(currentTile);
@@ -104,7 +107,6 @@ namespace Snek
 
             return false;
         }
-
         static Tile[] getWalkable(Queue<Program.Position> walls, Tile currentTile, Tile TargetTile, int border)
         { 
             var possibleTiles = new Tile[4] {
@@ -119,6 +121,93 @@ namespace Snek
             }
 
             return possibleTiles.Where(item => item.x < border && item.y < border && item.x > -1 && item.y > -1 && !walls.Contains(new Program.Position(item.x, item.y))).ToArray();
+        }
+
+        static bool allReachable(Queue<Program.Position> snake, List<Program.Position> moves, int border)
+        {
+            int[,] virtualMap = new int[border, border];
+            Queue<Program.Position> virtualSnake = new Queue<Program.Position>();
+            List<Program.Position> virtualMoves = new List<Program.Position>();
+            foreach (var item in snake) 
+            {
+                virtualSnake.Enqueue(snake.Last());
+            }
+            foreach (var item in moves)
+            {
+                virtualMoves.Add(item);
+            }
+
+            for (int i = 0; i < virtualMap.GetLength(0); i++)
+            {
+                for (int j = 0; j < virtualMap.GetLength(1); j++)
+                {
+                    virtualMap[i, j] = 0;
+                }
+            }
+
+            for (var i = 0; i < virtualMoves.Count; i++)
+            {
+                virtualSnake.Enqueue(virtualMoves[virtualMoves.Count - i - 1]);
+                virtualSnake.Dequeue();
+            }
+
+            foreach (var item in virtualSnake)
+            {
+                virtualMap[item.x, item.y] = 9;
+            }
+
+            foreach (var item in virtualMoves)
+            {
+                virtualMap[item.x, item.y] = 9;
+            }
+
+            virtualMap[virtualMoves.Last().x, virtualMoves.Last().y] = 1;
+
+            while (matrixContains(virtualMap, 1)) 
+            {
+                for (int i = 0; i < virtualMap.GetLength(0); i++)
+                {
+                    for (int j = 0; j < virtualMap.GetLength(1); j++)
+                    {
+                        if (virtualMap[i, j] == 1)
+                        {
+                            if (i - 1 > -1 && virtualMap[i - 1, j] == 0)
+                            {
+                                virtualMap[i - 1, j] = 1;
+                            }
+                            if (i + 1 < 50 && virtualMap[i + 1, j] == 0)
+                            {
+                                virtualMap[i + 1, j] = 1;
+                            }
+                            if (j - 1 > -1 && virtualMap[i, j - 1] == 0)
+                            {
+                                virtualMap[i, j - 1] = 1;
+                            }
+                            if (j + 1 < 50 && virtualMap[i, j + 1] == 0)
+                            {
+                                virtualMap[i, j + 1] = 1;
+                            }
+                            virtualMap[i, j] = 2;
+                        }
+                    }
+                }
+            }
+
+            if (!matrixContains(virtualMap, 0))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        static bool matrixContains(int[,] matrix, int prereq)
+        { 
+            for(int i = 0;i < matrix.GetLength(0); i++)
+                for (int j = 0; j < matrix.GetLength(1); j++)
+                    if (matrix[i, j] == prereq)
+                        return true;
+            return false;
         }
     }
 }

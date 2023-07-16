@@ -60,7 +60,7 @@ namespace Snek
                 isDead();
                 applePickedUp();
                 Draw();
-                Thread.Sleep(100);
+                Thread.Sleep(1);
             }
         }
 
@@ -68,10 +68,14 @@ namespace Snek
         {
             var moveset = new Queue<Position>();
 
-            if (!PathFinding.aStar(Snake, Apple, out moveset))
+            if (!PathFinding.aStar(Snake, Apple, out moveset, false))
             {
                 //moveset = hamiltonian();
-                moveset.Enqueue(new Position((Snake.Last().x + 1) % 50, Snake.Last().y));
+                PathFinding.aStar(Snake, Apple, out moveset, true);
+                if (moveset.Count == 0)
+                {
+                    moveset.Enqueue(new Position((Snake.Last().x + 1) % 50, Snake.Last().y));
+                }
             }
             return moveset;
         }
@@ -126,6 +130,7 @@ namespace Snek
         static void gameOver()
         {
             Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("ded");
             Console.ReadKey();
         }
 
