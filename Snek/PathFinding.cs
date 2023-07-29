@@ -40,7 +40,7 @@ namespace Snek
         public static bool aStar(Queue<Program.Position> walls, Program.Position target, out Queue<Program.Position> moveset, bool loose)
         {
             //snake specific
-            Tile start = new Tile(walls.Last().x, walls.Last().y, 100);
+            Tile start = new Tile(walls.Last().x, walls.Last().y, 0);
             var borders = 50;
             //
             Tile finish = new Tile(target.x, target.y, 0);
@@ -67,7 +67,7 @@ namespace Snek
                         currentTile = currentTile.parent;
                     }
                     tmp.Reverse();
-                    if (allReachable(walls, tmp, borders) || loose)
+                    if (loose /*|| allReachable(walls, tmp, borders)*/)
                     {
                         foreach (var tile in tmp)
                         {
@@ -108,21 +108,41 @@ namespace Snek
             return false;
         }
         static Tile[] getWalkable(Queue<Program.Position> walls, Tile currentTile, Tile TargetTile, int border)
-        { 
+        {
             var possibleTiles = new Tile[4] {
             new Tile(currentTile.x + 1, currentTile.y, currentTile, currentTile.cost + 1),
             new Tile(currentTile.x - 1, currentTile.y, currentTile, currentTile.cost + 1),
             new Tile(currentTile.x, currentTile.y + 1, currentTile, currentTile.cost + 1),
             new Tile(currentTile.x, currentTile.y - 1, currentTile, currentTile.cost + 1)};
 
-            foreach (var tile in possibleTiles) 
+            foreach (var tile in possibleTiles)
             {
                 tile.setDistance(TargetTile.x, TargetTile.y);
             }
 
-            return possibleTiles.Where(item => item.x < border && item.y < border && item.x > -1 && item.y > -1 && !walls.Contains(new Program.Position(item.x, item.y))).ToArray();
-        }
+            Tile[] trulyPossibleTiles = new Tile[4];
+            int c = 0;
+            foreach (var tile in possibleTiles.Where(item => item.x < border && item.y < border && item.x > -1 && item.y > -1))
+            {
+                if (walls.Contains(new Program.Position(tile.x, tile.y)) && walls.ToList().IndexOf(walls.First(x => x.x == tile.x && x.y == tile.y)) + 1 < tile.cost)
+                {
+                    trulyPossibleTiles[c] = tile;
+                    c++;
+                }
+                else if (!walls.Contains(new Program.Position(tile.x, tile.y)))
+                {
+                    trulyPossibleTiles[c] = tile;
+                    c++;
+                }
+            }
 
+            //increase penalty for being near the snake
+            //foreach (var tile in trulyPossibleTiles.Where(x => x != null && walls.Any(y => ((y.x + 1 == x.x || y.x - 1 == x.x) && y.y == x.y) || ((y.y + 1 == x.y || y.y - 1 == x.y) && y.x == x.x) || (y.y + 1 == x.y && y.x + 1 == x.x) || (y.y + 1 == x.y && y.x - 1 == x.x) || (y.y - 1 == x.y && y.x + 1 == x.x) || (y.y - 1 == x.y && y.x - 1 == x.x))))
+                //tile.distance += 15;
+
+            return trulyPossibleTiles.Where(x => x != null).ToArray();
+        }
+        /*
         static bool allReachable(Queue<Program.Position> snake, List<Program.Position> moves, int border)
         {
             int[,] virtualMap = new int[border, border];
@@ -200,7 +220,7 @@ namespace Snek
 
             return false;
         }
-
+        */
         static bool matrixContains(int[,] matrix, int prereq)
         { 
             for(int i = 0;i < matrix.GetLength(0); i++)

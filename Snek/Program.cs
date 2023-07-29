@@ -26,11 +26,7 @@ namespace Snek
             }
             public static bool operator !=(Position item1, Position item2)
             {
-                if (item1 == item2)
-                {
-                    return false;
-                }
-                return true;
+                return !(item1 == item2);
             }
         }
 
@@ -60,7 +56,7 @@ namespace Snek
                 isDead();
                 applePickedUp();
                 Draw();
-                Thread.Sleep(1);
+                Thread.Sleep(10);
             }
         }
 
@@ -68,9 +64,7 @@ namespace Snek
         {
             var moveset = new Queue<Position>();
 
-            if (!PathFinding.aStar(Snake, Apple, out moveset, false))
             {
-                //moveset = hamiltonian();
                 PathFinding.aStar(Snake, Apple, out moveset, true);
                 if (moveset.Count == 0)
                 {
