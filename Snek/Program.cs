@@ -55,7 +55,7 @@ namespace Snek
                 //isDead();
                 applePickedUp();
                 Draw();
-                Thread.Sleep(20);
+                Thread.Sleep(reallySmallTimeSpan);
             }
         }
 
@@ -73,7 +73,7 @@ namespace Snek
 
         static void placeApple()
         {
-            //Random r = new Random();
+            Random r = new Random();
             var tmp = allPos.Except(Snake).ToArray();
             if (tmp.Length == 0) {
                 Draw();
@@ -84,8 +84,8 @@ namespace Snek
                 Console.ReadKey();
                 Environment.Exit(0);
             }
-            Apple = new Position(Snake.ToArray()[Snake.Count - 1].x, (Snake.ToArray()[Snake.Count - 1].y + 1) % 50);
-            //Apple = tmp[r.Next(0, tmp.Length)];
+            //Apple = new Position(Snake.ToArray()[Snake.Count - 1].x, (Snake.ToArray()[Snake.Count - 1].y + 1) % 50);
+            Apple = tmp[r.Next(0, tmp.Length)];
         }
 
         static void applePickedUp()
