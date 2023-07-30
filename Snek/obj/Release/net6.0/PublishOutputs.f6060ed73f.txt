@@ -1,0 +1,5 @@
+C:\Users\bence\Desktop\snakbuilt\Snek.exe
+C:\Users\bence\Desktop\snakbuilt\Snek.dll
+C:\Users\bence\Desktop\snakbuilt\Snek.deps.json
+C:\Users\bence\Desktop\snakbuilt\Snek.runtimeconfig.json
+C:\Users\bence\Desktop\snakbuilt\Snek.pdb

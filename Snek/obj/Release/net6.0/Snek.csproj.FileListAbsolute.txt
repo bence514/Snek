@@ -1,0 +1,15 @@
+E:\Arc\Snek\Snek\bin\Release\net6.0\Snek.exe
+E:\Arc\Snek\Snek\bin\Release\net6.0\Snek.deps.json
+E:\Arc\Snek\Snek\bin\Release\net6.0\Snek.runtimeconfig.json
+E:\Arc\Snek\Snek\bin\Release\net6.0\Snek.dll
+E:\Arc\Snek\Snek\bin\Release\net6.0\Snek.pdb
+E:\Arc\Snek\Snek\obj\Release\net6.0\Snek.csproj.AssemblyReference.cache
+E:\Arc\Snek\Snek\obj\Release\net6.0\Snek.GeneratedMSBuildEditorConfig.editorconfig
+E:\Arc\Snek\Snek\obj\Release\net6.0\Snek.AssemblyInfoInputs.cache
+E:\Arc\Snek\Snek\obj\Release\net6.0\Snek.AssemblyInfo.cs
+E:\Arc\Snek\Snek\obj\Release\net6.0\Snek.csproj.CoreCompileInputs.cache
+E:\Arc\Snek\Snek\obj\Release\net6.0\Snek.dll
+E:\Arc\Snek\Snek\obj\Release\net6.0\refint\Snek.dll
+E:\Arc\Snek\Snek\obj\Release\net6.0\Snek.pdb
+E:\Arc\Snek\Snek\obj\Release\net6.0\Snek.genruntimeconfig.cache
+E:\Arc\Snek\Snek\obj\Release\net6.0\ref\Snek.dll

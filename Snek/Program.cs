@@ -36,7 +36,6 @@ namespace Snek
         static bool skip = false;
         static Position Apple;
         static List<Position> allPos;
-        static Queue<Position> moves;
         static void Main(string[] args)
         {
             Snake = new Queue<Position>();
@@ -47,31 +46,17 @@ namespace Snek
             Map = new char[50, 50];
             generateAllPos();
             placeApple();
-            moves = requestMove();
+            var reallySmallTimeSpan = new TimeSpan(ticks: 1);
             while (true)
             {
                 Map = new char[50, 50];
                 move();
                 placeObjects();
-                isDead();
+                //isDead();
                 applePickedUp();
                 Draw();
-                Thread.Sleep(10);
+                Thread.Sleep(20);
             }
-        }
-
-        static Queue<Position> requestMove()
-        {
-            var moveset = new Queue<Position>();
-
-            {
-                PathFinding.aStar(Snake, Apple, out moveset, true);
-                if (moveset.Count == 0)
-                {
-                    moveset.Enqueue(new Position((Snake.Last().x + 1) % 50, Snake.Last().y));
-                }
-            }
-            return moveset;
         }
 
         static void generateAllPos()
@@ -88,9 +73,19 @@ namespace Snek
 
         static void placeApple()
         {
-            Random r = new Random();
+            //Random r = new Random();
             var tmp = allPos.Except(Snake).ToArray();
-            Apple = tmp[r.Next(0, tmp.Length)];
+            if (tmp.Length == 0) {
+                Draw();
+                Apple.x = -1;
+                placeObjects();
+                Draw();
+                Console.WriteLine("Snake wins!");
+                Console.ReadKey();
+                Environment.Exit(0);
+            }
+            Apple = new Position(Snake.ToArray()[Snake.Count - 1].x, (Snake.ToArray()[Snake.Count - 1].y + 1) % 50);
+            //Apple = tmp[r.Next(0, tmp.Length)];
         }
 
         static void applePickedUp()
@@ -108,14 +103,17 @@ namespace Snek
             {
                 Map[position.x, position.y] = 'X';
             }
-            Map[Apple.x, Apple.y] = 'O';
+            if (Apple.x != -1)
+                Map[Apple.x, Apple.y] = 'O';
         }
 
         static void move()
         {
-            if (moves.Count == 0)
-                moves = requestMove();
-            Snake.Enqueue(moves.Dequeue());
+            var lSnake = Snake.ToArray();
+            if (lSnake[lSnake.Length - 1].y == 49 - lSnake[lSnake.Length - 1].x && lSnake[lSnake.Length - 1].x == lSnake[lSnake.Length - 3].x)
+                Snake.Enqueue(new Position((lSnake[lSnake.Length - 1].x + 1) % 50, lSnake[lSnake.Length - 1].y));
+            else
+                Snake.Enqueue(new Position(lSnake[lSnake.Length - 1].x, (lSnake[lSnake.Length - 1].y + 1) % 50));
             if (!skip)
                 Snake.Dequeue();
             skip = false;
